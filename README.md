@@ -1,8 +1,9 @@
 # Rocket Launch Calendar
-Things to add \n
-	\tSort by: \n
-		\t\tlocation\n
-		\t\tcompany\n
-		\t\tmanned / unmanned\n
-		\t\tlive stream\n
-	\tSet alarms
+Things to add
+
+	Sort by:
+		location
+		company
+		manned / unmanned
+		live stream
+	set alarms
