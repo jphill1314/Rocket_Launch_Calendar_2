@@ -1,22 +1,19 @@
 package com.phillips.jake.rocketlaunchcalendar;
 
 import android.content.Context;
+import android.database.SQLException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 
+import com.phillips.jake.rocketlaunchcalendar.Data.CalendarDatSource;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link CalendarFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link CalendarFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import java.util.ArrayList;
+
 public class CalendarFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -29,49 +26,54 @@ public class CalendarFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
+    LaunchDetailsAdapter calendarAdapter;
+    CalendarDatSource calendarDatSource;
+    ArrayList<LaunchDetails> details;
+
+
     public CalendarFragment() {
         // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment CalendarFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static CalendarFragment newInstance(String param1, String param2) {
-        CalendarFragment fragment = new CalendarFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        calendarDatSource = new CalendarDatSource(getActivity());
+
+        try{
+            calendarDatSource.open();
+        }
+        catch(SQLException e){
+
+        }
+
+        details = calendarDatSource.getAllLaunches();
+
+        if(details.size() == 0){
+            calendarDatSource.createDatabaseItem("Echostar 18 & BRIsat", "Ariane 5 ECA",
+                    "June 17, 2016 20:30:00 UTC", "", "", "", 1, 1466195400, 1466199600);
+            calendarDatSource.createDatabaseItem("New Shepard Test Flight 5", "New Shepard",
+                    "June 19, 2016 14:15:00 UTC", "", "", "", 1, 1466345700, 1466345700);
+            calendarDatSource.createDatabaseItem("Cartosat 2C & 19 small satellites", "PSLV XL",
+                    "June 22, 2016 03:55:00 UTC", "", "", "", 1, 1466567700, 1466567700);
+            calendarDatSource.createDatabaseItem("MUOS-5", "Atlas V 551",
+                    "June 24, 2016 14:30:00 UTC", "", "", "", 1, 1466778600, 1466781240);
+            calendarDatSource.createDatabaseItem("Development Flight 1", "Long March 7",
+                    "June 25, 2016 11:30:00 UTC", "", "", "", 1, 1466854200, 1466854200);
+
+            details = calendarDatSource.getAllLaunches();
+        }
+
+        calendarAdapter = new LaunchDetailsAdapter(getActivity(), details);
+
+        View rootView = inflater.inflate(R.layout.fragment_calendar, container, false);
+
+        final ListView listView = (ListView) rootView.findViewById(R.id.listview_calendar);
+        listView.setAdapter(calendarAdapter);
+
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_calendar, container, false);
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
     }
 
     @Override
@@ -91,16 +93,6 @@ public class CalendarFragment extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
