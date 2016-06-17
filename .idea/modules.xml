@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/RocketLaunchCalendar.iml" filepath="$PROJECT_DIR$/RocketLaunchCalendar.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Rocket_Launch.iml" filepath="$PROJECT_DIR$/Rocket_Launch.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
