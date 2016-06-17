@@ -8,6 +8,8 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.phillips.jake.rocketlaunchcalendar.LaunchDetails;
 
+import java.util.ArrayList;
+
 /**
  * Created by jphil on 6/16/2016.
  */
@@ -51,13 +53,34 @@ public class CalendarDatSource {
                 CalendarSQLiteHelper.COLUMN_ID + " = " + insertId, null, null, null, null);
         cursor.moveToFirst();
 
-        LaunchDetails details = new LaunchDetails(cursor.getString(1), cursor.getString(2), cursor.getString(3),
-                cursor.getString(7), cursor.getString(8), cursor.getString(9), cursor.getInt(4),
-                cursor.getInt(5), cursor.getInt(6), cursor.getInt(0));
+        LaunchDetails details = cursorToDetails(cursor);
 
         cursor.close();
-        
+
         return details;
+    }
+
+    public ArrayList<LaunchDetails> getAllLaunches(){
+        ArrayList<LaunchDetails> calendar = new ArrayList<>();
+
+        Cursor cursor = database.query(CalendarSQLiteHelper.TABLE_CALENDAR, allColumns,
+                null, null, null, null, null);
+
+        cursor.moveToFirst();
+        while(!cursor.isAfterLast()){
+            LaunchDetails details = cursorToDetails(cursor);
+            calendar.add(details);
+            cursor.moveToNext();
+        }
+
+        cursor.close();
+        return calendar;
+    }
+
+    private LaunchDetails cursorToDetails(Cursor cursor){
+        return new LaunchDetails(cursor.getString(1), cursor.getString(2), cursor.getString(3),
+                cursor.getString(7), cursor.getString(8), cursor.getString(9), cursor.getInt(4),
+                cursor.getInt(5), cursor.getInt(6), cursor.getInt(0));
     }
 
 }

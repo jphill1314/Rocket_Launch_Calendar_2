@@ -2,6 +2,8 @@ package com.phillips.jake.rocketlaunchcalendar;
 
 /**
  * Created by jphil on 6/16/2016.
+ *
+ * Need to add function that converts the Unix timestamps to a String w/ month and day and a String w/ 12hr time
  */
 public class LaunchDetails {
 
