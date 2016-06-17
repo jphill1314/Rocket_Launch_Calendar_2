@@ -73,7 +73,7 @@ public class CalendarFragment extends Fragment {
         listView.setAdapter(calendarAdapter);
 
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_calendar, container, false);
+        return rootView;
     }
 
     @Override
