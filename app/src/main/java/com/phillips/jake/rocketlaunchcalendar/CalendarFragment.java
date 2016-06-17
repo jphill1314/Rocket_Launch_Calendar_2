@@ -45,7 +45,6 @@ public class CalendarFragment extends Fragment {
             calendarDatSource.open();
         }
         catch(SQLException e){
-
         }
 
         details = calendarDatSource.getAllLaunches();

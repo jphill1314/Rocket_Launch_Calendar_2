@@ -31,9 +31,9 @@ public class LaunchDetailsAdapter extends ArrayAdapter<LaunchDetails> {
         TextView tvTime = (TextView) convertView.findViewById(R.id.calendar_item_window);
 
         tvMission.setText(detail.mission);
-        tvDate.setText("Test Date");
+        tvDate.setText(detail.launchDay);
         tvRocket.setText(detail.rocket);
-        tvTime.setText("Test Time");
+        tvTime.setText(detail.launchTime);
 
         return convertView;
     }
