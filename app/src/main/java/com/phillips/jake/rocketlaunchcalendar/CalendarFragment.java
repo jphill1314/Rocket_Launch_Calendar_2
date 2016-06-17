@@ -4,15 +4,20 @@ import android.content.Context;
 import android.database.SQLException;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.phillips.jake.rocketlaunchcalendar.Data.CalendarDatSource;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public class CalendarFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
@@ -67,6 +72,7 @@ public class CalendarFragment extends Fragment {
         calendarAdapter = new LaunchDetailsAdapter(getActivity(), details);
 
         View rootView = inflater.inflate(R.layout.fragment_calendar, container, false);
+        populateTopView(rootView);
 
         final ListView listView = (ListView) rootView.findViewById(R.id.listview_calendar);
         listView.setAdapter(calendarAdapter);
@@ -74,6 +80,45 @@ public class CalendarFragment extends Fragment {
         // Inflate the layout for this fragment
         return rootView;
     }
+
+    private void populateTopView(View view){
+        TextView tvNextMisson = (TextView) view.findViewById(R.id.next_launch_mission);
+        TextView tvNextRockt = (TextView) view.findViewById(R.id.next_launch_rocket);
+        final TextView tvDays = (TextView) view.findViewById(R.id.num_days_to_next_launch);
+        final TextView tvHours = (TextView) view.findViewById(R.id.num_hours_to_next_launch);
+        final TextView tvMin = (TextView) view.findViewById(R.id.num_min_to_next_launch);
+        final TextView tvSec = (TextView) view.findViewById(R.id.num_seconds_to_next_launch);
+
+        tvNextMisson.setText(details.get(0).mission);
+        tvNextRockt.setText(details.get(0).rocket);
+
+        Calendar current = Calendar.getInstance();
+
+        long timeToLaunch = details.get(0).windowStart * 1000L - current.getTimeInMillis();
+
+        new CountDownTimer(timeToLaunch, 1000){
+            public void onTick(long millSecondsLeft){
+                int days, hours, min, sec;
+                days = (int) (millSecondsLeft / (1000 * 24 * 3600));
+                millSecondsLeft -= days * 24 * 3600 * 1000;
+                hours = (int) (millSecondsLeft / (1000 * 3600));
+                millSecondsLeft -= hours * 3600 * 1000;
+                min = (int) (millSecondsLeft / (1000 * 60));
+                millSecondsLeft -= min * 60 * 1000;
+                sec = (int) (millSecondsLeft / 1000);
+
+                tvDays.setText(days + "");
+                tvHours.setText(hours + "");
+                tvMin.setText(min + "");
+                tvSec.setText(sec + "");
+            }
+            public void onFinish(){
+
+            }
+        }.start();
+    }
+
+
 
     @Override
     public void onAttach(Context context) {
