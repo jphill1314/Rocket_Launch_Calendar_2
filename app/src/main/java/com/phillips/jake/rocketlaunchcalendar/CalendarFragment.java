@@ -3,9 +3,11 @@ package com.phillips.jake.rocketlaunchcalendar;
 import android.content.Context;
 import android.database.SQLException;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,8 +16,17 @@ import android.widget.TextView;
 
 import com.phillips.jake.rocketlaunchcalendar.Data.CalendarDatSource;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.w3c.dom.Text;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -54,7 +65,7 @@ public class CalendarFragment extends Fragment {
 
         details = calendarDatSource.getAllLaunches();
 
-        if(details.size() == 0){
+        /*if(details.size() == 0){
             calendarDatSource.createDatabaseItem("Echostar 18 & BRIsat", "Ariane 5 ECA",
                     "June 17, 2016 20:30:00 UTC", "", "", "", 1, 1466195400, 1466199600);
             calendarDatSource.createDatabaseItem("New Shepard Test Flight 5", "New Shepard",
@@ -67,7 +78,10 @@ public class CalendarFragment extends Fragment {
                     "June 25, 2016 11:30:00 UTC", "", "", "", 1, 1466854200, 1466854200);
 
             details = calendarDatSource.getAllLaunches();
-        }
+        }*/
+
+        FetchLaunches lauchTask = new FetchLaunches();
+        lauchTask.execute("");
 
         calendarAdapter = new LaunchDetailsAdapter(getActivity(), details);
 
@@ -140,5 +154,207 @@ public class CalendarFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+
+    private void convertDataToDetails (String[] launches){
+        // clears database of everything
+        calendarDatSource.clearDatabase();
+
+        String mission, rocket, net, mapUrl;
+        String vidURLs, infoURLs;
+        String launchData;
+        int status, wsstamp, westamp;
+        int endIndex;
+
+
+        for(int i = 0; i < launches.length; i++){
+            launchData = launches[i];
+
+            endIndex = launchData.indexOf("|");
+            mission = launchData.substring(0, endIndex).trim();
+            launchData = launchData.substring(endIndex + 1);
+
+            endIndex = launchData.indexOf("|");
+            rocket = launchData.substring(0, endIndex).trim();
+            launchData = launchData.substring(endIndex + 1);
+
+            endIndex = launchData.indexOf("|");
+            net = launchData.substring(0, endIndex).trim();
+            launchData = launchData.substring(endIndex + 1);
+
+            endIndex = launchData.indexOf("|");
+            status = Integer.getInteger(launchData.substring(0, endIndex).trim());
+            launchData = launchData.substring(endIndex + 1);
+
+            endIndex = launchData.indexOf("|");
+            wsstamp = Integer.getInteger(launchData.substring(0, endIndex).trim());
+            launchData = launchData.substring(endIndex + 1);
+
+            endIndex = launchData.indexOf("|");
+            westamp = Integer.getInteger(launchData.substring(0, endIndex).trim());
+            launchData = launchData.substring(endIndex + 1);
+
+            endIndex = launchData.indexOf("|");
+            vidURLs = launchData.substring(0, endIndex).trim();
+            launchData = launchData.substring(endIndex + 1);
+
+            endIndex = launchData.indexOf("|");
+            infoURLs = launchData.substring(0, endIndex).trim();
+            launchData = launchData.substring(endIndex + 1);
+
+            endIndex = launchData.indexOf("|");
+            mapUrl = launchData.substring(0, endIndex).trim();
+
+            calendarDatSource.createDatabaseItem(mission, rocket, net, vidURLs, infoURLs,
+                    mapUrl, status, wsstamp, westamp);
+        }
+
+        details = calendarDatSource.getAllLaunches();
+
+    }
+
+    public class FetchLaunches extends AsyncTask<String, Void, String[]>{
+
+        private String[] getLaunchesFromJson(String launchJsonStr, int numLaunches) throws JSONException{
+
+            final String LL_LAUNCHES = "launches";
+            final String LL_NAME = "name";
+            final String LL_NET = "net";
+            final String LL_STATUS = "status";
+            final String LL_WSSTAMP = "wsstamp";
+            final String LL_WESTAMP = "westamp";
+            final String LL_VIDURL = "vidURLs";
+            final String LL_INFORURL = "infoURLs";
+            final String LL_MAPURL = "mapURL";
+
+            JSONObject launchJson = new JSONObject(launchJsonStr);
+            JSONArray launchArray = launchJson.getJSONArray(LL_LAUNCHES);
+
+            String[] resultStrs = new String[numLaunches];
+            for(int i = 0; i < launchArray.length(); i++){
+                String name, net, mapUrl;
+                String vidURLs, infoURLs;
+                int status, wsstamp, westamp;
+
+                JSONObject launch = launchArray.getJSONObject(i);
+
+                name = launch.getString(LL_NAME);
+                net = launch.getString(LL_NET);
+                status = launch.getInt(LL_STATUS);
+                wsstamp = launch.getInt(LL_WSSTAMP);
+                westamp = launch.getInt(LL_WESTAMP);
+                if(launch.getJSONArray(LL_VIDURL).length() != 0) {
+                    vidURLs = launch.getJSONArray(LL_VIDURL).getString(0);
+                }
+                else{
+                    vidURLs = "no video";
+                }
+                if(launch.getJSONArray(LL_INFORURL).length() != 0) {
+                    infoURLs = launch.getJSONArray(LL_INFORURL).getString(0);
+                }
+                else{
+                    infoURLs = "no info";
+                }
+                //mapUrl = launch.getString(LL_MAPURL);
+                mapUrl = "no url";
+
+                resultStrs[i] = name + "|" + net + "|" + status +
+                        "|" + wsstamp + "|" + westamp + "|" +
+                        vidURLs + "|" + infoURLs + "|" + mapUrl;
+            }
+
+            return resultStrs;
+        }
+
+        @Override
+        protected String[] doInBackground(String... params){
+
+            if(params.length == 0){
+                return null;
+            }
+
+            HttpURLConnection urlConnection = null;
+            BufferedReader reader = null;
+
+            String launchJson = null;
+
+            int numLaunches = 10;
+            String mode = "verbose";
+
+            try{
+                /*
+                final String BASE_URL = "https://launchlibrary.net/1.2/launch?";
+                final String MODE_PARAM = "verbose";
+                final String LAUNCHES_PARAM = "next";
+
+                Uri builtUri = Uri.parse(BASE_URL).buildUpon()
+                        .appendQueryParameter(MODE_PARAM, mode)
+                        .appendQueryParameter(LAUNCHES_PARAM, Integer.toString(numLaunches))
+                        .build();
+
+                URL url = new URL(builtUri.toString());
+                */
+
+                URL url = new URL("https://launchlibrary.net/1.2/launch?mode=verbose");
+                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+                urlConnection.connect();
+
+                InputStream inputStream = urlConnection.getInputStream();
+                StringBuffer buffer = new StringBuffer();
+
+                if(inputStream == null){
+                    return null;
+                }
+                reader = new BufferedReader(new InputStreamReader(inputStream));
+
+                String line;
+                while((line = reader.readLine()) != null){
+                    buffer.append(line + "\n");
+                }
+
+                if(buffer.length() == 0){
+                    return null;
+                }
+
+                launchJson = buffer.toString();
+            }
+            catch(IOException e){
+                Log.e("JSON Error", "Cal Frag",  e);
+                return null;
+            }
+            finally {
+                if(urlConnection != null){
+                    urlConnection.disconnect();
+                }
+                if(reader != null){
+                    try{
+                        reader.close();
+                    }
+                    catch(final IOException e){
+                        Log.e("Reader error", "Error closing stream", e);
+                    }
+                }
+            }
+
+            try{
+                Log.d("JSON", launchJson);
+                return getLaunchesFromJson(launchJson, numLaunches);
+            }
+            catch(JSONException e){
+                Log.e("JSON Error", e.getMessage(), e);
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String[] result){
+            if(result != null){
+                convertDataToDetails(result);
+            }
+        }
     }
 }

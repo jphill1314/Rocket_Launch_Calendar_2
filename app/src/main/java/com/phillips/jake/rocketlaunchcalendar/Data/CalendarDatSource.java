@@ -77,6 +77,14 @@ public class CalendarDatSource {
         return calendar;
     }
 
+
+    /*
+    * WARNING THIS DELETES THE ENTIRE TABLE!!!!!!!!
+    * */
+    public void clearDatabase(){
+        database.delete(CalendarSQLiteHelper.TABLE_CALENDAR, null, null);
+    }
+
     private LaunchDetails cursorToDetails(Cursor cursor){
         return new LaunchDetails(cursor.getString(1), cursor.getString(2), cursor.getString(3),
                 cursor.getString(7), cursor.getString(8), cursor.getString(9), cursor.getInt(4),
